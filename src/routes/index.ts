@@ -39,7 +39,6 @@ export const router = (req: IncomingMessage, res: ServerResponse) => {
           userService.deleteUser(paramId)
           return res.end()
         case 'PUT':
-          res.writeHead(200, {ContentType: 'application/json'});
           let data = "";
           req.on("data", (chunk) => {
             data += chunk.toString();
@@ -47,12 +46,21 @@ export const router = (req: IncomingMessage, res: ServerResponse) => {
       
           req.on("end", () => {
             let userData = JSON.parse(data);
-            return res.end(JSON.stringify({
-              data: userService.updateUser(paramId, userData)
-            }));
+            const response = userService.updateUser(paramId, userData)
+            if (response instanceof ValidationError) {
+              res.writeHead(400)
+              return res.end(JSON.stringify({
+                data: { error: { message: response.message }}
+              }))
+            } else {
+              res.writeHead(200)
+              return res.end(JSON.stringify({
+                data: response
+              }));
+            }
           });
       } 
-    } else if (req.url === '/api/users/') {
+    } else if (req.url && (/\/api\/users/).test(req.url)) {
       switch(req.method) {
         case 'GET':
           const users = userService.getUsers();

@@ -61,7 +61,22 @@ export class UserService {
   }
 
   updateUser (id: User['id'], userData: Partial<User>) {
+    const { username, age, hobbies } = userData;
+    console.log(userData)
+    console.log(`${username}, ${age}, ${hobbies}`)
+    if (username && typeof username !== 'string') {
+      return new ValidationError('username must be a string')
+    }
+
+    if (age && typeof age !== 'number') {
+      return new ValidationError('age must be a number')
+    }
+
+    if (hobbies && !Array.isArray(hobbies) || (hobbies && !hobbies.every(element => typeof element === 'string'))) {
+      return new ValidationError('hobbies must be an array of strings')
+    }
     this.db.updateUser(id, userData)
+    return this.db.findById(id)
   }
 
   deleteUser (id: User['id']) {
