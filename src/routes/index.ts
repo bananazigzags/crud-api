@@ -1,6 +1,7 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { validate as isValidUUID } from "uuid";
 import { UserService } from "../controllers/userController";
+import { ValidationError } from "../errors/ValidationError";
 
 const userService = new UserService()
 
@@ -53,24 +54,43 @@ export const router = (req: IncomingMessage, res: ServerResponse) => {
     } else if (req.url === '/api/users/') {
       switch(req.method) {
         case 'GET':
-          res.writeHead(200, {ContentType: 'application/json'});
-          return res.end(JSON.stringify({
-            data: userService.getUsers()
-          }))
-        case 'POST':
-          res.writeHead(201, {ContentType: 'application/json'});
-          let data = "";
-          req.on("data", (chunk) => {
-            data += chunk.toString();
-          });
-      
-          req.on("end", () => {
-            let userData = JSON.parse(data);
-            let createdUser = userService.createUser(userData)
+          const users = userService.getUsers();
+          if (users) {
+            res.writeHead(200, {ContentType: 'application/json'});
             return res.end(JSON.stringify({
-              data: createdUser
-            }));
-          });
+              data: userService.getUsers()
+            }))
+          }
+        case 'POST':
+          try {
+            let data = "";
+            req.on("data", (chunk) => {
+              data += chunk.toString();
+            });
+        
+            req.on("end", () => {
+              let userData = JSON.parse(data);
+              let response = userService.createUser(userData)
+              if (response instanceof ValidationError) {
+                res.writeHead(400)
+                return res.end(JSON.stringify({
+                  data: { error: { message: response.message }}
+                }))
+              }
+              res.writeHead(201, {ContentType: 'application/json'});
+              return res.end(JSON.stringify({
+              data: response
+              }));
+            });
+          } catch (err) {
+            console.log(err)
+            if (err instanceof ValidationError) {
+              res.writeHead(400)
+              return res.end(JSON.stringify({
+                data: { error: { message: err.message }}
+              }))
+            }
+          }
       }
     } else {
       res.writeHead(404, {ContentType: 'application/json'});
