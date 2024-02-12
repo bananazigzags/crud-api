@@ -58,13 +58,11 @@ export const router = (req: IncomingMessage, res: ServerResponse) => {
             data: userService.getUsers()
           }))
         case 'POST':
-          console.log('psot')
           res.writeHead(201, {ContentType: 'application/json'});
           let data = "";
           req.on("data", (chunk) => {
             data += chunk.toString();
           });
-          console.log(data)
       
           req.on("end", () => {
             let userData = JSON.parse(data);
