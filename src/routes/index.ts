@@ -13,6 +13,13 @@ export const router = (req: IncomingMessage, res: ServerResponse) => {
 
       if (!paramId) return
 
+      if (!isValidUUID(paramId)) {
+        res.writeHead(400, 'Valid uuid is required')
+        return res.end(JSON.stringify({
+          data: { error: { message: 'Valid uuid is required'}}
+        }))
+      }
+
       if (!userService.getUser(paramId)) {
         res.writeHead(404, {ContentType: 'application/json'});
         return res.end(JSON.stringify({
@@ -20,12 +27,6 @@ export const router = (req: IncomingMessage, res: ServerResponse) => {
         }))
       }
       
-      if (!isValidUUID(paramId)) {
-        res.writeHead(400, 'Valid uuid is required')
-        return res.end(JSON.stringify({
-          data: { error: { message: 'Valid uuid is required'}}
-        }))
-      }
 
       switch(req.method) {
         case 'GET': 
