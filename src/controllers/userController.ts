@@ -62,8 +62,6 @@ export class UserService {
 
   updateUser (id: User['id'], userData: Partial<User>) {
     const { username, age, hobbies } = userData;
-    console.log(userData)
-    console.log(`${username}, ${age}, ${hobbies}`)
     if (username && typeof username !== 'string') {
       return new ValidationError('username must be a string')
     }
